@@ -11,7 +11,7 @@ router.get("/", (req, res) => {
         .catch(error => {
             console.log(error);
             res.status(500).json({
-                message: "Error retrieving the posts"
+                message: "Error retrieving the posts."
             });       
         });
 });
@@ -64,7 +64,7 @@ router.post("/", (req, res) => {
         .catch(error => {
             console.log(error);
             res.status(500).json({
-                message: "There was an error while saving the post to the database"
+                message: "There was an error while saving the post to the database."
             });
         })
     } else {
@@ -75,38 +75,32 @@ router.post("/", (req, res) => {
 });
 // POST creates a comment for the post with specified ID using info sent inside of req.body
 router.post("/:id/comments", (req, res) => {
+
     const { text } = req.body;
-    const id = req.params.id;
-        if (!text) {
-                req.status(400).json({
-                    message: "Please provide text for the comment."});
-        }
-              
-        if (!id) {
-                req.status(400).json({
-                    message: "The post with the specified ID does not exist."});
-        }
-    Posts.findById(id)
-        .then(pstid => {
-            if (pstid.length < 1){
+
+    if (text) {
+        res.status(201).json(text);
+    }
+    Posts.insertComment(text)
+        .then(insrtcom => {
+            if(!insrtcom) {
+                res.status(404).json({
+                    message: "The post with the specified Id does not exist."
+                });
+            } else {
                 res.status(404).json({
                     message: "The post with the specified ID does not exist."
-                })
-            } else {
-                Posts.insertComment(text)
-                    .then(insrt => {
-                        console.log(insrt);
-                        res.status(201).json(text);
-                    })
-                    .catch(error => {
-                        console.log(error)
-                        res.status(500).json({
-                            error: "There was an error while saving the comment to the database"
-                        });
-                    });
+                  });
             }
-        });  
+        })
+        .catch(error => {
+
+            res.status(500).json({
+                error: "There was an error while saving the comment to the database."
+            });
+        });
 });
+
 //DELETE removes the post with secific ID
 router.delete('/:id', (req, res) => {
     Posts.remove(req.params.id)
