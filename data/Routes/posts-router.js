@@ -42,14 +42,14 @@ router.get("/:id/comments", (req, res) => {
             if (idcom) {
                 res.status(200).json(idcom);
             } else {
-                res.status(404).json({
-                    message: "The post with the specified ID does not exist."
+                res.status(400).json({
+                    errorMessage: "Please provide text for the comment."
                 });
             }
           })
-          .catch(error => {
-              console.log(500).json({
-                  message: "The comments information could not be retrieved."
+        .catch(error => {
+            res(500).json({
+                message: "The comments information could not be retrieved."
               });
           });   
 });
@@ -73,33 +73,37 @@ router.post("/", (req, res) => {
         });
     }
 });
-// POST creates a comment for the post with specified ID using info sent inside of req.body
+// POST --creates a comment for the post with specified ID using info sent inside of req.body
 router.post("/:id/comments", (req, res) => {
-
     const { text } = req.body;
+    const post_id  = req.params.id;
+        Posts.findById(post_id)
+            .then(psts => {
+                if (!psts[0])
 
-    if (text) {
-        res.status(201).json(text);
-    }
-    Posts.insertComment(text)
-        .then(insrtcom => {
-            if(!insrtcom) {
-                res.status(404).json({
-                    message: "The post with the specified Id does not exist."
+                res.status(400).json({
+                    errorMessage: "Please provide Id for the Post."
                 });
+            })
+            if (text) {
+                Posts.insertComment({text, post_id})
+                    .then(insrtcom => {                       
+                            res.status(201).json(insrtcom)
+                    })
+                
             } else {
-                res.status(404).json({
-                    message: "The post with the specified ID does not exist."
-                  });
-            }
-        })
-        .catch(error => {
-
-            res.status(500).json({
-                error: "There was an error while saving the comment to the database."
+                res.status(400).json({
+                    errorMessage: "Please provide text for the post."
+            
+            })
+                
+            .catch(error => {
+                res.status(500).json({
+                    error: "There was an error while saving the comment to the database."
+                });
             });
-        });
-});
+        
+}});
 
 //DELETE removes the post with secific ID
 router.delete('/:id', (req, res) => {
